@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel — Bishal Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0E0D0C;--bg2:#141210;--bg3:#1C1A17;--bg4:#242220;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --coral:#E8603C;--coral-lt:#F5956E;--amber:#E8A43C;--teal:#3CBFA8;--red:#E85050;
+  --text:#F0EDE8;--text2:#9E9890;--text3:#5C5750;
+  --sidebar:220px;--radius:8px;--radius-lg:12px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+input,textarea,select,button{font-family:'Space Grotesk',sans-serif;font-size:14px}
+a{color:inherit;text-decoration:none}
+
+/* ── LOGIN ── */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;width:340px;max-width:90vw}
+.login-logo{font-size:22px;font-weight:700;color:var(--text);margin-bottom:0.3rem}
+.login-logo span{color:var(--coral)}
+.login-sub{font-size:12px;color:var(--text3);margin-bottom:2rem}
+.login-error{font-size:12px;color:var(--red);margin-bottom:1rem;display:none}
+.login-error.show{display:block}
+
+/* ── APP ── */
+#app{display:none;flex-direction:row;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:50}
+.sidebar-brand{padding:1.25rem 1.25rem 0.75rem;border-bottom:1px solid var(--border)}
+.sidebar-brand-name{font-size:16px;font-weight:700;color:var(--text)}
+.sidebar-brand-name span{color:var(--coral)}
+.sidebar-brand-sub{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+.sidebar-nav{padding:1rem 0;flex:1}
+.sidebar-section-label{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:0.5rem 1.25rem 0.25rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:0.6rem 1.25rem;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:background 0.15s,color 0.15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(232,96,60,0.1);color:var(--coral)}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+.view-site-btn{display:block;background:var(--coral);color:#fff;text-align:center;padding:8px 12px;border-radius:var(--radius);font-size:12px;font-weight:500;transition:background 0.2s;margin-bottom:8px}
+.view-site-btn:hover{background:var(--coral-lt)}
+.logout-btn{display:block;background:none;border:1px solid var(--border);color:var(--text2);text-align:center;padding:7px 12px;border-radius:var(--radius);font-size:12px;cursor:pointer;width:100%;transition:border-color 0.2s,color 0.2s}
+.logout-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;padding:2rem;min-height:100vh;max-width:calc(100vw - var(--sidebar))}
+.panel{display:none}
+.panel.active{display:block}
+.panel-header{margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.panel-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.panel-desc{font-size:13px;color:var(--text2)}
+
+/* FORM ELEMENTS */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 13px;color:var(--text);outline:none;transition:border-color 0.2s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--coral)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.field textarea{resize:vertical;min-height:80px}
+.field select option{background:var(--bg3)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.field-hint{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s}
+.btn-save{background:var(--coral);color:#fff}
+.btn-save:hover{background:var(--coral-lt)}
+.btn-secondary{background:var(--bg4);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--border2)}
+.btn-danger{background:rgba(232,80,80,0.12);color:var(--red);border:1px solid rgba(232,80,80,0.2)}
+.btn-danger:hover{background:rgba(232,80,80,0.2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-add{background:rgba(232,96,60,0.1);color:var(--coral);border:1px dashed rgba(232,96,60,0.3);width:100%;padding:12px;justify-content:center;border-radius:var(--radius);margin-top:12px}
+.btn-add:hover{background:rgba(232,96,60,0.18)}
+
+/* CARD LIST */
+.card-list{display:flex;flex-direction:column;gap:10px;margin-top:1rem}
+.item-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.item-card-head{display:flex;align-items:center;gap:12px;padding:1rem 1.25rem;cursor:pointer}
+.item-card-thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--bg4)}
+.item-card-thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.item-card-info{flex:1;min-width:0}
+.item-card-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-card-meta{font-size:12px;color:var(--text3)}
+.item-card-actions{display:flex;gap:6px;flex-shrink:0}
+.item-card-body{display:none;padding:0 1.25rem 1.25rem;border-top:1px solid var(--border)}
+.item-card-body.open{display:block}
+.item-card-body .field:first-child{margin-top:1.25rem}
+
+/* IMAGE UPLOAD */
+.img-upload-area{border:1px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative}
+.img-upload-area:hover{border-color:var(--coral);background:rgba(232,96,60,0.04)}
+.img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload-preview{width:100%;height:140px;object-fit:cover;border-radius:var(--radius);display:none;margin-bottom:8px}
+.img-upload-preview.show{display:block}
+.img-upload-label{font-size:13px;color:var(--text2)}
+.img-upload-label span{color:var(--coral)}
+.img-upload-hint{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* TAGS/PILLS EDITOR */
+.pills-editor{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);min-height:44px;align-items:center}
+.pill-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(232,96,60,0.12);color:var(--coral);font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px}
+.pill-tag button{background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:14px;line-height:1;opacity:0.6}
+.pill-tag button:hover{opacity:1}
+.pill-add-input{background:none;border:none;color:var(--text2);font-size:13px;outline:none;min-width:100px;flex:1}
+.pill-add-input::placeholder{color:var(--text3)}
+
+/* STATS EDITOR */
+.stats-row{display:grid;grid-template-columns:1fr 2fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.stats-row input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);outline:none}
+.stats-row input:focus{border-color:var(--coral)}
+.stats-row button{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px}
+
+/* CAT CHECKBOXES */
+.cat-checks{display:flex;gap:10px;flex-wrap:wrap}
+.cat-check{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:all 0.2s;font-size:12px;font-weight:500;color:var(--text2)}
+.cat-check input{display:none}
+.cat-check.checked{border-color:var(--coral);background:rgba(232,96,60,0.1);color:var(--coral)}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 18px;font-size:13px;font-weight:500;color:var(--text);z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-ok{color:var(--teal)}
+.toast-err{color:var(--red)}
+
+/* SKILL LEVEL INPUT */
+.skill-level-row{display:grid;grid-template-columns:1fr 80px 80px auto;gap:8px;align-items:center;margin-bottom:8px}
+.skill-level-row input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);outline:none}
+.skill-level-row input:focus{border-color:var(--coral)}
+.skill-level-bar{height:4px;background:var(--border);border-radius:4px;overflow:hidden}
+.skill-level-fill{height:100%;background:var(--coral);border-radius:4px;transition:width 0.3s}
+.skill-level-row button{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px}
+
+/* OVERVIEW */
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:2rem}
+.overview-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;text-align:center}
+.overview-num{font-size:32px;font-weight:700;color:var(--coral)}
+.overview-label{font-size:12px;color:var(--text2);margin-top:4px}
+.overview-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .sidebar{transform:translateX(-100%);transition:transform 0.3s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:1rem;max-width:100vw}
+  .mob-menu-btn{display:flex!important}
+  .row-2,.row-3{grid-template-columns:1fr}
+  .skill-level-row{grid-template-columns:1fr 60px auto}
+  .skill-level-bar{display:none}
+}
+.mob-menu-btn{display:none;position:fixed;top:1rem;left:1rem;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;cursor:pointer;color:var(--text);font-size:18px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Bishal<span>.</span> Admin</div>
+    <div class="login-sub">Sign in to manage your portfolio</div>
+    <div class="login-error" id="loginError">Incorrect password. Try again.</div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter your admin password" autocomplete="current-password"/></div>
+    <button class="btn btn-save" style="width:100%;justify-content:center" id="loginBtn">Sign in →</button>
+    <div style="font-size:11px;color:var(--text3);margin-top:1rem;text-align:center">Default password: <code style="color:var(--amber)">admin123</code></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <button class="mob-menu-btn" id="mobMenuBtn">☰</button>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Bishal<span>.</span></div>
+      <div class="sidebar-brand-sub">Portfolio Admin</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <button class="nav-item active" data-panel="overview"><span class="nav-icon">🏠</span>Dashboard</button>
+      <div class="sidebar-section-label" style="margin-top:0.75rem">Content</div>
+      <button class="nav-item" data-panel="hero"><span class="nav-icon">✦</span>Hero</button>
+      <button class="nav-item" data-panel="about"><span class="nav-icon">👤</span>About</button>
+      <button class="nav-item" data-panel="projects"><span class="nav-icon">💼</span>Projects</button>
+      <button class="nav-item" data-panel="resume"><span class="nav-icon">📄</span>Resume</button>
+      <button class="nav-item" data-panel="blog"><span class="nav-icon">✍️</span>Blog</button>
+      <button class="nav-item" data-panel="contact"><span class="nav-icon">📞</span>Contact</button>
+      <div class="sidebar-section-label" style="margin-top:0.75rem">System</div>
+      <button class="nav-item" data-panel="settings"><span class="nav-icon">⚙️</span>Settings</button>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="bishal-portfolio.html" target="_blank" class="view-site-btn">↗ View Portfolio</a>
+      <button class="logout-btn" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <div class="panel-header">
+        <div class="panel-title">Dashboard</div>
+        <div class="panel-desc">Your portfolio at a glance. All changes save instantly to your browser.</div>
+      </div>
+      <div class="overview-grid" id="overviewGrid"></div>
+      <div class="panel-header" style="margin-top:2rem">
+        <div class="panel-title" style="font-size:16px">Quick actions</div>
+      </div>
+      <div class="overview-actions">
+        <button class="btn btn-secondary" onclick="switchPanel('projects')">➕ Add project</button>
+        <button class="btn btn-secondary" onclick="switchPanel('blog')">➕ Add blog post</button>
+        <button class="btn btn-secondary" onclick="switchPanel('resume')">✏️ Edit resume</button>
+        <a href="bishal-portfolio.html" target="_blank" class="btn btn-save">↗ Open portfolio</a>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="panel" id="panel-hero">
+      <div class="panel-header">
+        <div class="panel-title">Hero Section</div>
+        <div class="panel-desc">Your name, headline, and opening statement.</div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Your name</label><input id="h-name" placeholder="Bishal"/></div>
+        <div class="field"><label>Badge text</label><input id="h-badge" placeholder="Available for projects"/></div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Tagline line 1</label><input id="h-tl1" placeholder="Design that"/></div>
+        <div class="field"><label>Tagline line 2 (italic accent)</label><input id="h-tl2" placeholder="moves people"/></div>
+      </div>
+      <div class="field"><label>Intro paragraph</label><textarea id="h-sub" rows="3"></textarea></div>
+      <div class="field">
+        <label>Stats (number + label)</label>
+        <div id="statsEditor"></div>
+        <button class="btn btn-add" onclick="addStat()">+ Add stat</button>
+      </div>
+      <button class="btn btn-save" onclick="saveHero()">💾 Save hero</button>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="panel" id="panel-about">
+      <div class="panel-header">
+        <div class="panel-title">About Section</div>
+        <div class="panel-desc">Your bio, profile photo, and skill pills.</div>
+      </div>
+      <div class="field">
+        <label>Profile photo</label>
+        <div class="img-upload-area" id="aboutPhotoArea">
+          <input type="file" id="aboutPhotoInput" accept="image/*" onchange="handleAboutPhoto(event)"/>
+          <img id="aboutPhotoPreview" class="img-upload-preview" src="" alt="Preview"/>
+          <div class="img-upload-label">📸 Click to upload photo <span>or drag & drop</span></div>
+          <div class="img-upload-hint">JPG, PNG, WEBP • Max 2MB recommended</div>
+        </div>
+        <button class="btn btn-danger btn-sm" style="margin-top:6px" onclick="clearAboutPhoto()">✕ Remove photo</button>
+      </div>
+      <div class="field"><label>Bio paragraph 1</label><textarea id="about-p1" rows="3"></textarea></div>
+      <div class="field"><label>Bio paragraph 2</label><textarea id="about-p2" rows="3"></textarea></div>
+      <div class="field"><label>Bio paragraph 3</label><textarea id="about-p3" rows="3"></textarea></div>
+      <div class="field">
+        <label>Skill pills</label>
+        <div class="pills-editor" id="skillsPills">
+          <input class="pill-add-input" placeholder="Type skill & press Enter…" id="skillInput" onkeydown="handleSkillKey(event)"/>
+        </div>
+        <div class="field-hint">Press Enter to add a skill. Click × to remove.</div>
+      </div>
+      <button class="btn btn-save" onclick="saveAbout()">💾 Save about</button>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="panel" id="panel-projects">
+      <div class="panel-header">
+        <div class="panel-title">Projects</div>
+        <div class="panel-desc">Add, edit, or remove portfolio work items.</div>
+      </div>
+      <div class="card-list" id="projectsList"></div>
+      <button class="btn btn-add" onclick="addProject()">+ Add new project</button>
+    </div>
+
+    <!-- RESUME -->
+    <div class="panel" id="panel-resume">
+      <div class="panel-header">
+        <div class="panel-title">Resume</div>
+        <div class="panel-desc">Work experience, education, and skills.</div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap" id="resumeTabs">
+        <button class="btn btn-save" id="rtab-exp" onclick="showResumeTab('exp')">Experience</button>
+        <button class="btn btn-secondary" id="rtab-edu" onclick="showResumeTab('edu')">Education</button>
+        <button class="btn btn-secondary" id="rtab-skills" onclick="showResumeTab('skills')">Skills</button>
+      </div>
+      <div id="resumeTabContent"></div>
+    </div>
+
+    <!-- BLOG -->
+    <div class="panel" id="panel-blog">
+      <div class="panel-header">
+        <div class="panel-title">Blog Posts</div>
+        <div class="panel-desc">Add, edit, or remove articles.</div>
+      </div>
+      <div class="card-list" id="blogList"></div>
+      <button class="btn btn-add" onclick="addBlog()">+ Add new post</button>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="panel" id="panel-contact">
+      <div class="panel-header">
+        <div class="panel-title">Contact Info</div>
+        <div class="panel-desc">Your email and social media links.</div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Email</label><input id="c-email" placeholder="bishal@design.studio"/></div>
+        <div class="field"><label>Location</label><input id="c-location" placeholder="Durgapur, West Bengal"/></div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>LinkedIn URL</label><input id="c-linkedin" placeholder="linkedin.com/in/bishal"/></div>
+        <div class="field"><label>Behance URL</label><input id="c-behance" placeholder="behance.net/bishal"/></div>
+      </div>
+      <button class="btn btn-save" onclick="saveContact()">💾 Save contact</button>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="panel" id="panel-settings">
+      <div class="panel-header">
+        <div class="panel-title">Settings</div>
+        <div class="panel-desc">GitHub publish, password, data management.</div>
+      </div>
+
+      <!-- GITHUB PUBLISH -->
+      <div style="background:var(--bg3);border:1px solid rgba(60,191,168,0.25);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem">
+        <div style="font-size:15px;font-weight:500;margin-bottom:4px;color:var(--teal)">&#x1F680; Publish to GitHub</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem">Changes ko live karo — sabke phone pe dikhe</div>
+        <div class="field">
+          <label>GitHub Token</label>
+          <div style="position:relative">
+            <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="padding-right:44px"/>
+            <button onclick="toggleTokenVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px" id="tokenEyeBtn">&#x1F441;</button>
+          </div>
+          <div class="field-hint">&#x26A0;&#xFE0F; Token kisi ko share mat karo. Yeh sirf aapke browser mein save hoga.</div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>GitHub Username</label><input type="text" id="gh-user" value="Naitikkumarsaw1234"/></div>
+          <div class="field"><label>Repository Name</label><input type="text" id="gh-repo" value="naitik_official"/></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-save" onclick="saveGhSettings()">&#x1F4BE; Save settings</button>
+          <button class="btn" id="publishBtn" onclick="publishToGitHub()" style="background:var(--teal);color:#fff;font-weight:600">&#x1F680; Publish to GitHub</button>
+        </div>
+        <div id="publishStatus" style="margin-top:1rem;font-size:13px;display:none;padding:10px;border-radius:var(--radius);background:var(--bg4)"></div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem">
+        <div style="font-size:15px;font-weight:500;margin-bottom:1rem">Change password</div>
+        <div class="field"><label>Current password</label><input type="password" id="pw-current" placeholder="Current password"/></div>
+        <div class="row-2">
+          <div class="field"><label>New password</label><input type="password" id="pw-new" placeholder="New password"/></div>
+          <div class="field"><label>Confirm new password</label><input type="password" id="pw-confirm" placeholder="Confirm"/></div>
+        </div>
+        <button class="btn btn-save" onclick="changePassword()">&#x1F512; Update password</button>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div style="background:var(--bg3);border:1px solid rgba(232,80,80,0.2);border-radius:var(--radius-lg);padding:1.5rem">
+        <div style="font-size:15px;font-weight:500;margin-bottom:0.5rem;color:var(--red)">&#x26A0; Danger zone</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">This will reset ALL portfolio content back to default. This cannot be undone.</div>
+        <button class="btn btn-danger" onclick="resetData()">&#x1F5D1; Reset to defaults</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="adminToast"></div>
+
+<script>
+// ─── CONSTANTS ─────────────────────────────────────────────────
+const STORAGE_KEY = 'bishalPortfolioData';
+const PW_KEY      = 'bishalAdminPw';
+const AUTH_KEY    = 'bishalAdminAuth';
+
+const DEFAULT = {
+  hero: { name:'Bishal', badge:'Available for projects', tagline1:'Design that', tagline2:'moves people', sub:"I'm Bishal — a creative designer who turns complex ideas into visuals that feel inevitable.", stats:[{num:'20+',label:'Projects delivered'},{num:'4+',label:'Years of craft'},{num:'100%',label:'Happy clients'}] },
+  about: { photo:'', paragraphs:["I'm a creative designer with a love for systems thinking and expressive visuals. Every project starts with a question: what does this need to feel like before it can look like anything?","I work across branding, digital product design, and editorial illustration — often all three at once. My process lives at the intersection of intuition and rigor.","When I'm not designing, I'm probably sketching in the margins of something, or obsessing over type."], skills:['Figma','Illustrator','After Effects','Procreate','Framer','Typography','Motion','Brand systems'] },
+  projects: [
+    {id:'p1',name:'Arya Arts Festival',desc:'Complete visual identity for a multi-day arts festival — print, digital, wayfinding, and merch.',cats:['brand'],emoji:'🎭',image:'',link:'#'},
+    {id:'p2',name:'Verdant — Plant Care App',desc:'A calming, gesture-first mobile app for plant parents who want zero friction in their daily care routine.',cats:['ui'],emoji:'🌿',image:'',link:'#'},
+    {id:'p3',name:'The Weekly Cover Series',desc:'12-week editorial illustration run for an independent magazine on culture and technology.',cats:['illo'],emoji:'🔥',image:'',link:'#'},
+    {id:'p4',name:'Postmark Studio Rebrand',desc:'Packaging and brand refresh for a stationery studio.',cats:['print','brand'],emoji:'💌',image:'',link:'#'},
+    {id:'p5',name:'Volt — Fintech Dashboard',desc:'Design system and dashboard UI for a fintech startup.',cats:['ui','brand'],emoji:'⚡',image:'',link:'#'},
+    {id:'p6',name:'Botanical Print Collection',desc:'A series of limited-edition risograph prints inspired by native Bengali flora.',cats:['illo','print'],emoji:'🌸',image:'',link:'#'}
+  ],
+  experience: [
+    {id:'e1',year:'2023 — Present',role:'Lead Designer',org:'Studio Kiran, Kolkata',desc:'Brand identity and digital product design for tech, culture, and hospitality clients.'},
+    {id:'e2',year:'2021 — 2023',role:'Visual Designer',org:'Freelance',desc:'20+ projects across illustration, packaging, and UI for startups and individual creators.'},
+    {id:'e3',year:'2020',role:'Design Intern',org:'Aura Creative Agency',desc:'Motion graphics and social content for FMCG and lifestyle brands.'}
+  ],
+  education: [
+    {id:'d1',year:'2017 — 2021',role:'B.Des, Visual Communication',org:'NID, Ahmedabad',desc:'Specialisation in typography and brand systems.'},
+    {id:'d2',year:'2022',role:'Certificate — Motion Design',org:'School of Motion (online)',desc:'Animation principles, After Effects, and storytelling through motion.'},
+    {id:'d3',year:'2023',role:'Type Design Workshop',org:'Typoday, Mumbai',desc:'Three-day intensive on Devanagari type systems and bi-script design.'}
+  ],
+  resumeSkills: [{name:'Figma',level:95},{name:'Illustrator',level:90},{name:'After Effects',level:80},{name:'Photoshop',level:85},{name:'Procreate',level:88},{name:'Framer',level:70},{name:'Brand systems',level:92},{name:'Typography',level:95}],
+  blog: [
+    {id:'b1',cat:'Process',catCls:'cat-brand',date:'June 2026',title:'Why I sketch with a pen before opening Figma',excerpt:"Digital tools are frictionless — and that's exactly the problem. Here's how analog sketching keeps my thinking honest."},
+    {id:'b2',cat:'Typography',catCls:'cat-ui',date:'May 2026',title:'Choosing type for expressive brands: a practical guide',excerpt:"Most designers over-complicate font pairing. There are three questions I ask, and one rule I almost never break."},
+    {id:'b3',cat:'Freelance',catCls:'cat-illo',date:'March 2026',title:'Pricing creative work without undervaluing yourself',excerpt:"My first year of freelancing I left a lot of money on the table. Here's what I learned about scoping and saying no."}
+  ],
+  contact: { email:'bishal@design.studio', linkedin:'linkedin.com/in/bishal', behance:'behance.net/bishal', location:'Durgapur, West Bengal' }
+};
+
+// ─── UTILS ─────────────────────────────────────────────────────
+function getData() { try{ const s=localStorage.getItem(STORAGE_KEY); if(s) return JSON.parse(s); }catch(e){} return JSON.parse(JSON.stringify(DEFAULT)); }
+function saveData(d) { try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }catch(e){ toast('Storage full! Try removing large images.','err'); } }
+function uid() { return '_'+Math.random().toString(36).slice(2,9); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getPass() { return localStorage.getItem(PW_KEY)||'admin123'; }
+
+function toast(msg, type='ok') {
+  const t = document.getElementById('adminToast');
+  t.innerHTML = `<span class="toast-${type}">${type==='ok'?'✓':'✕'}</span> ${esc(msg)}`;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────
+function checkAuth() {
+  if(sessionStorage.getItem(AUTH_KEY)==='1'){ showApp(); return; }
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+function showApp() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  loadOverview();
+}
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+function doLogin() {
+  const pw = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if(pw===getPass()){ sessionStorage.setItem(AUTH_KEY,'1'); err.classList.remove('show'); showApp(); }
+  else { err.classList.add('show'); document.getElementById('loginPass').value=''; }
+}
+document.getElementById('logoutBtn').addEventListener('click',()=>{ sessionStorage.removeItem(AUTH_KEY); location.reload(); });
+
+// ─── SIDEBAR NAV ───────────────────────────────────────────────
+let currentPanel = 'overview';
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    switchPanel(btn.dataset.panel);
+    document.getElementById('sidebar').classList.remove('open');
+  });
+});
+function switchPanel(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelector(`.nav-item[data-panel="${id}"]`).classList.add('active');
+  currentPanel = id;
+  if(id==='overview') loadOverview();
+  if(id==='hero') loadHero();
+  if(id==='about') loadAbout();
+  if(id==='projects') loadProjects();
+  if(id==='resume') loadResume('exp');
+  if(id==='blog') loadBlog();
+  if(id==='contact') loadContact();
+  if(id==='settings') loadGhSettings();
+}
+
+// Mobile sidebar toggle
+document.getElementById('mobMenuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+
+// ─── OVERVIEW ──────────────────────────────────────────────────
+function loadOverview() {
+  const d = getData();
+  document.getElementById('overviewGrid').innerHTML = `
+    <div class="overview-card"><div class="overview-num">${d.projects.length}</div><div class="overview-label">Projects</div></div>
+    <div class="overview-card"><div class="overview-num">${d.blog.length}</div><div class="overview-label">Blog posts</div></div>
+    <div class="overview-card"><div class="overview-num">${d.experience.length}</div><div class="overview-label">Work experiences</div></div>
+    <div class="overview-card"><div class="overview-num">${d.resumeSkills.length}</div><div class="overview-label">Skills listed</div></div>`;
+}
+
+// ─── HERO ──────────────────────────────────────────────────────
+function loadHero() {
+  const h = getData().hero;
+  document.getElementById('h-name').value = h.name||'';
+  document.getElementById('h-badge').value = h.badge||'';
+  document.getElementById('h-tl1').value = h.tagline1||'';
+  document.getElementById('h-tl2').value = h.tagline2||'';
+  document.getElementById('h-sub').value = h.sub||'';
+  renderStatsEditor(h.stats||[]);
+}
+function renderStatsEditor(stats) {
+  document.getElementById('statsEditor').innerHTML = stats.map((s,i)=>`
+    <div class="stats-row">
+      <input placeholder="Number e.g. 20+" value="${esc(s.num)}" oninput="updateStat(${i},'num',this.value)"/>
+      <input placeholder="Label" value="${esc(s.label)}" oninput="updateStat(${i},'label',this.value)"/>
+      <button onclick="removeStat(${i})">✕</button>
+    </div>`).join('');
+}
+let _stats = [];
+function loadStatsArr() { _stats = getData().hero.stats||[]; }
+function updateStat(i,k,v) { if(!_stats.length) loadStatsArr(); _stats[i][k]=v; }
+function removeStat(i) { if(!_stats.length) loadStatsArr(); _stats.splice(i,1); renderStatsEditor(_stats); }
+function addStat() { if(!_stats.length) loadStatsArr(); _stats.push({num:'',label:''}); renderStatsEditor(_stats); }
+function saveHero() {
+  if(!_stats.length) loadStatsArr();
+  const d = getData();
+  d.hero = { name:document.getElementById('h-name').value, badge:document.getElementById('h-badge').value, tagline1:document.getElementById('h-tl1').value, tagline2:document.getElementById('h-tl2').value, sub:document.getElementById('h-sub').value, stats:[..._stats] };
+  saveData(d); toast('Hero saved!'); _stats=[];
+}
+
+// ─── ABOUT ─────────────────────────────────────────────────────
+let _aboutPhoto = '';
+function loadAbout() {
+  const a = getData().about;
+  document.getElementById('about-p1').value = a.paragraphs[0]||'';
+  document.getElementById('about-p2').value = a.paragraphs[1]||'';
+  document.getElementById('about-p3').value = a.paragraphs[2]||'';
+  _aboutPhoto = a.photo||'';
+  if(_aboutPhoto){ const img=document.getElementById('aboutPhotoPreview'); img.src=_aboutPhoto; img.classList.add('show'); }
+  renderSkillPills(a.skills||[]);
+}
+function handleAboutPhoto(e) {
+  const file = e.target.files[0]; if(!file) return;
+  if(file.size>3*1024*1024){ toast('Image is too large (>3MB). Please resize first.','err'); return; }
+  const r = new FileReader();
+  r.onload = ev => { _aboutPhoto=ev.target.result; const img=document.getElementById('aboutPhotoPreview'); img.src=_aboutPhoto; img.classList.add('show'); };
+  r.readAsDataURL(file);
+}
+function clearAboutPhoto() { _aboutPhoto=''; const img=document.getElementById('aboutPhotoPreview'); img.src=''; img.classList.remove('show'); }
+
+let _skills = [];
+function renderSkillPills(skills) {
+  _skills = [...skills];
+  const container = document.getElementById('skillsPills');
+  const input = document.getElementById('skillInput');
+  // clear existing pills (but keep input)
+  Array.from(container.querySelectorAll('.pill-tag')).forEach(p=>p.remove());
+  _skills.forEach((s,i)=>{
+    const pill = document.createElement('span');
+    pill.className = 'pill-tag';
+    pill.innerHTML = `${esc(s)}<button onclick="removeSkill(${i})">×</button>`;
+    container.insertBefore(pill, input);
+  });
+}
+function handleSkillKey(e) {
+  if(e.key==='Enter'){ e.preventDefault(); const v=e.target.value.trim(); if(v){ _skills.push(v); e.target.value=''; renderSkillPills(_skills); } }
+}
+function removeSkill(i) { _skills.splice(i,1); renderSkillPills(_skills); }
+function saveAbout() {
+  const d = getData();
+  d.about = { photo:_aboutPhoto, paragraphs:[document.getElementById('about-p1').value, document.getElementById('about-p2').value, document.getElementById('about-p3').value], skills:[..._skills] };
+  saveData(d); toast('About saved!');
+}
+
+// ─── PROJECTS ──────────────────────────────────────────────────
+const CATS = ['brand','ui','illo','print'];
+const CAT_LABELS = {brand:'Branding',ui:'UI / UX',illo:'Illustration',print:'Print'};
+
+function loadProjects() {
+  const d = getData();
+  const list = document.getElementById('projectsList');
+  if(!d.projects.length){ list.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem">No projects yet. Add one below.</div>'; return; }
+  list.innerHTML = d.projects.map((p,i)=>projectCardHTML(p,i)).join('');
+}
+function projectCardHTML(p,i) {
+  const thumbSrc = p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}"/>` : `<span style="font-size:22px">${esc(p.emoji||'🎨')}</span>`;
+  const catsHTML = CATS.map(c=>`<label class="cat-check ${p.cats.includes(c)?'checked':''}" id="pc-${esc(p.id)}-${c}"><input type="checkbox" value="${c}" ${p.cats.includes(c)?'checked':''} onchange="toggleProjCat('${esc(p.id)}','${c}',this.checked)"/>${CAT_LABELS[c]}</label>`).join('');
+  return `
+    <div class="item-card" id="pcard-${esc(p.id)}">
+      <div class="item-card-head" onclick="toggleCard('pbody-${esc(p.id)}')">
+        <div class="item-card-thumb">${thumbSrc}</div>
+        <div class="item-card-info">
+          <div class="item-card-name">${esc(p.name)||'Untitled project'}</div>
+          <div class="item-card-meta">${p.cats.map(c=>CAT_LABELS[c]||c).join(', ')||'No category'}</div>
+        </div>
+        <div class="item-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 Delete</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();toggleCard('pbody-${esc(p.id)}')">✏ Edit</button>
+        </div>
+      </div>
+      <div class="item-card-body" id="pbody-${esc(p.id)}">
+        <div class="row-2">
+          <div class="field"><label>Project name</label><input id="pn-${esc(p.id)}" value="${esc(p.name)}" oninput="updateProject('${esc(p.id)}','name',this.value)"/></div>
+          <div class="field"><label>Emoji (if no image)</label><input id="pe-${esc(p.id)}" value="${esc(p.emoji)}" oninput="updateProject('${esc(p.id)}','emoji',this.value)" style="max-width:100px"/></div>
+        </div>
+        <div class="field"><label>Description</label><textarea id="pd-${esc(p.id)}" oninput="updateProject('${esc(p.id)}','desc',this.value)">${esc(p.desc)}</textarea></div>
+        <div class="field"><label>Project link (URL)</label><input id="pl-${esc(p.id)}" value="${esc(p.link||'#')}" oninput="updateProject('${esc(p.id)}','link',this.value)" placeholder="https://..."/></div>
+        <div class="field"><label>Categories</label><div class="cat-checks">${catsHTML}</div></div>
+        <div class="field">
+          <label>Project image</label>
+          <div class="img-upload-area">
+            <input type="file" accept="image/*" onchange="handleProjectImg(event,'${esc(p.id)}')"/>
+            <img id="pimg-${esc(p.id)}" src="${esc(p.image||'')}" alt="" class="img-upload-preview ${p.image?'show':''}"/>
+            <div class="img-upload-label">📁 Click to upload image <span>or drag & drop</span></div>
+            <div class="img-upload-hint">JPG, PNG, WEBP • Replaces emoji thumbnail</div>
+          </div>
+          ${p.image?`<button class="btn btn-danger btn-sm" style="margin-top:6px" onclick="clearProjectImg('${esc(p.id)}')">✕ Remove image</button>`:''}
+        </div>
+        <button class="btn btn-save" onclick="saveProject('${esc(p.id)}')">💾 Save project</button>
+      </div>
+    </div>`;
+}
+function toggleCard(id) { const el=document.getElementById(id); if(el) el.classList.toggle('open'); }
+function toggleProjCat(pid,cat,checked) {
+  const d=getData(); const p=d.projects.find(x=>x.id===pid); if(!p) return;
+  if(checked&&!p.cats.includes(cat)) p.cats.push(cat);
+  else if(!checked) p.cats=p.cats.filter(c=>c!==cat);
+  const el=document.getElementById(`pc-${pid}-${cat}`);
+  if(el) el.className='cat-check '+(checked?'checked':'');
+  saveData(d);
+}
+function updateProject(pid,key,val) {
+  const d=getData(); const p=d.projects.find(x=>x.id===pid); if(!p) return; p[key]=val; saveData(d);
+  if(key==='name'){ const nameEl=document.querySelector(`#pcard-${pid} .item-card-name`); if(nameEl) nameEl.textContent=val||'Untitled project'; }
+}
+function handleProjectImg(e,pid) {
+  const file=e.target.files[0]; if(!file) return;
+  if(file.size>2*1024*1024){ toast('Image too large (>2MB). Please compress first.','err'); return; }
+  const r=new FileReader();
+  r.onload=ev=>{ const d=getData(); const p=d.projects.find(x=>x.id===pid); if(!p) return; p.image=ev.target.result; saveData(d); const img=document.getElementById('pimg-'+pid); if(img){img.src=ev.target.result;img.classList.add('show');} toast('Image uploaded!'); };
+  r.readAsDataURL(file);
+}
+function clearProjectImg(pid) { const d=getData(); const p=d.projects.find(x=>x.id===pid); if(!p) return; p.image=''; saveData(d); loadProjects(); }
+function deleteProject(pid) { if(!confirm('Delete this project?')) return; const d=getData(); d.projects=d.projects.filter(p=>p.id!==pid); saveData(d); loadProjects(); toast('Project deleted.'); }
+function saveProject(pid) { toast('Project saved!'); loadProjects(); setTimeout(()=>{ const b=document.getElementById('pbody-'+pid); if(b) b.classList.add('open'); },100); }
+function addProject() {
+  const d=getData();
+  const newP={id:uid(),name:'New Project',desc:'',cats:['brand'],emoji:'🎨',image:'',link:'#'};
+  d.projects.unshift(newP); saveData(d); loadProjects();
+  setTimeout(()=>{ const b=document.getElementById('pbody-'+newP.id); if(b){b.classList.add('open');} document.getElementById('panel-projects').scrollTop=0; },100);
+}
+
+// ─── RESUME ────────────────────────────────────────────────────
+let currentResumeTab = 'exp';
+function loadResume(tab) { currentResumeTab=tab; renderResumeTab(tab); }
+function showResumeTab(tab) {
+  currentResumeTab=tab;
+  ['exp','edu','skills'].forEach(t=>{
+    document.getElementById('rtab-'+t).className='btn '+(t===tab?'btn-save':'btn-secondary');
+  });
+  renderResumeTab(tab);
+}
+function renderResumeTab(tab) {
+  const d=getData(); const el=document.getElementById('resumeTabContent');
+  if(tab==='exp') el.innerHTML = tlEditor(d.experience,'experience');
+  else if(tab==='edu') el.innerHTML = tlEditor(d.education,'education');
+  else el.innerHTML = skillsEditor(d.resumeSkills);
+}
+function tlEditor(items, key) {
+  const cardsHTML = items.map((item,i)=>`
+    <div class="item-card" style="margin-bottom:10px">
+      <div class="item-card-head" onclick="toggleCard('tl-${key}-${i}')">
+        <div class="item-card-info"><div class="item-card-name">${esc(item.role)}</div><div class="item-card-meta">${esc(item.org)} · ${esc(item.year)}</div></div>
+        <div class="item-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteTlItem('${key}',${i})">🗑</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();toggleCard('tl-${key}-${i}')">✏</button>
+        </div>
+      </div>
+      <div class="item-card-body" id="tl-${key}-${i}">
+        <div class="row-2">
+          <div class="field"><label>Year / Period</label><input value="${esc(item.year)}" oninput="updateTlItem('${key}',${i},'year',this.value)"/></div>
+          <div class="field"><label>Role / Title</label><input value="${esc(item.role)}" oninput="updateTlItem('${key}',${i},'role',this.value)"/></div>
+        </div>
+        <div class="field"><label>Organisation</label><input value="${esc(item.org)}" oninput="updateTlItem('${key}',${i},'org',this.value)"/></div>
+        <div class="field"><label>Description</label><textarea oninput="updateTlItem('${key}',${i},'desc',this.value)">${esc(item.desc)}</textarea></div>
+        <button class="btn btn-save btn-sm" onclick="toast('Saved!')">💾 Save</button>
+      </div>
+    </div>`).join('');
+  return `${cardsHTML}<button class="btn btn-add" onclick="addTlItem('${key}')">+ Add entry</button>`;
+}
+function updateTlItem(key,i,field,val) { const d=getData(); d[key][i][field]=val; saveData(d); }
+function deleteTlItem(key,i) { if(!confirm('Delete this entry?')) return; const d=getData(); d[key].splice(i,1); saveData(d); renderResumeTab(currentResumeTab); toast('Deleted.'); }
+function addTlItem(key) {
+  const d=getData(); d[key].unshift({id:uid(),year:'Year',role:'Role / Title',org:'Organisation',desc:''});
+  saveData(d); renderResumeTab(currentResumeTab);
+  setTimeout(()=>{ const b=document.getElementById(`tl-${key}-0`); if(b) b.classList.add('open'); },100);
+}
+function skillsEditor(skills) {
+  const rowsHTML = skills.map((s,i)=>`
+    <div class="skill-level-row">
+      <input value="${esc(s.name)}" placeholder="Skill name" oninput="updateSkill(${i},'name',this.value)"/>
+      <input type="number" min="1" max="100" value="${s.level}" placeholder="%" oninput="updateSkill(${i},'level',+this.value);updateSkillBar(${i},+this.value)"/>
+      <div class="skill-level-bar"><div class="skill-level-fill" id="sbar-${i}" style="width:${s.level}%"></div></div>
+      <button onclick="deleteSkill(${i})">✕</button>
+    </div>`).join('');
+  return `${rowsHTML}<button class="btn btn-add" onclick="addSkill()">+ Add skill</button><button class="btn btn-save" style="margin-top:12px" onclick="toast('Skills saved!')">💾 Save skills</button>`;
+}
+function updateSkill(i,k,v) { const d=getData(); d.resumeSkills[i][k]=v; saveData(d); }
+function updateSkillBar(i,v) { const b=document.getElementById('sbar-'+i); if(b) b.style.width=v+'%'; }
+function deleteSkill(i) { if(!confirm('Remove this skill?')) return; const d=getData(); d.resumeSkills.splice(i,1); saveData(d); renderResumeTab('skills'); }
+function addSkill() { const d=getData(); d.resumeSkills.push({name:'New Skill',level:70}); saveData(d); renderResumeTab('skills'); }
+
+// ─── BLOG ──────────────────────────────────────────────────────
+const BLOG_CATS = [{value:'cat-brand',label:'Process'},{value:'cat-ui',label:'Typography'},{value:'cat-illo',label:'Freelance'},{value:'cat-print',label:'Design'},{value:'cat-brand',label:'Branding'}];
+
+function loadBlog() {
+  const d=getData(); const list=document.getElementById('blogList');
+  if(!d.blog.length){ list.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem">No posts yet.</div>'; return; }
+  list.innerHTML = d.blog.map((b,i)=>`
+    <div class="item-card" id="bcard-${esc(b.id)}">
+      <div class="item-card-head" onclick="toggleCard('bbody-${esc(b.id)}')">
+        <div class="item-card-info">
+          <div class="item-card-name">${esc(b.title)||'Untitled post'}</div>
+          <div class="item-card-meta">${esc(b.cat)} · ${esc(b.date)}</div>
+        </div>
+        <div class="item-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteBlog('${esc(b.id)}')">🗑 Delete</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();toggleCard('bbody-${esc(b.id)}')">✏ Edit</button>
+        </div>
+      </div>
+      <div class="item-card-body" id="bbody-${esc(b.id)}">
+        <div class="row-2">
+          <div class="field"><label>Category label</label><input id="bcat-${esc(b.id)}" value="${esc(b.cat)}" oninput="updateBlog('${esc(b.id)}','cat',this.value)" placeholder="e.g. Process"/></div>
+          <div class="field"><label>Date</label><input id="bdate-${esc(b.id)}" value="${esc(b.date)}" oninput="updateBlog('${esc(b.id)}','date',this.value)" placeholder="e.g. June 2026"/></div>
+        </div>
+        <div class="field"><label>Category colour</label>
+          <select id="bcls-${esc(b.id)}" onchange="updateBlog('${esc(b.id)}','catCls',this.value)">
+            <option value="cat-brand" ${b.catCls==='cat-brand'?'selected':''}>Coral (Brand)</option>
+            <option value="cat-ui" ${b.catCls==='cat-ui'?'selected':''}>Teal (UI)</option>
+            <option value="cat-illo" ${b.catCls==='cat-illo'?'selected':''}>Amber (Illustration)</option>
+            <option value="cat-print" ${b.catCls==='cat-print'?'selected':''}>Gray (Print)</option>
+          </select>
+        </div>
+        <div class="field"><label>Title</label><input id="btit-${esc(b.id)}" value="${esc(b.title)}" oninput="updateBlog('${esc(b.id)}','title',this.value)"/></div>
+        <div class="field"><label>Excerpt</label><textarea id="bexc-${esc(b.id)}" oninput="updateBlog('${esc(b.id)}','excerpt',this.value)">${esc(b.excerpt)}</textarea></div>
+        <button class="btn btn-save" onclick="toast('Post saved!')">💾 Save post</button>
+      </div>
+    </div>`).join('');
+}
+function updateBlog(id,key,val) { const d=getData(); const b=d.blog.find(x=>x.id===id); if(!b) return; b[key]=val; saveData(d); }
+function deleteBlog(id) { if(!confirm('Delete this post?')) return; const d=getData(); d.blog=d.blog.filter(b=>b.id!==id); saveData(d); loadBlog(); toast('Post deleted.'); }
+function addBlog() {
+  const d=getData();
+  const nb={id:uid(),cat:'Process',catCls:'cat-brand',date:'June 2026',title:'New Blog Post',excerpt:'Your excerpt here.'};
+  d.blog.unshift(nb); saveData(d); loadBlog();
+  setTimeout(()=>{ const b=document.getElementById('bbody-'+nb.id); if(b) b.classList.add('open'); },100);
+}
+
+// ─── CONTACT ───────────────────────────────────────────────────
+function loadContact() {
+  const c=getData().contact;
+  document.getElementById('c-email').value=c.email||'';
+  document.getElementById('c-location').value=c.location||'';
+  document.getElementById('c-linkedin').value=c.linkedin||'';
+  document.getElementById('c-behance').value=c.behance||'';
+}
+function saveContact() {
+  const d=getData();
+  d.contact={email:document.getElementById('c-email').value, location:document.getElementById('c-location').value, linkedin:document.getElementById('c-linkedin').value, behance:document.getElementById('c-behance').value};
+  saveData(d); toast('Contact info saved!');
+}
+
+// ─── SETTINGS ──────────────────────────────────────────────────
+function changePassword() {
+  const cur=document.getElementById('pw-current').value;
+  const nw=document.getElementById('pw-new').value;
+  const cf=document.getElementById('pw-confirm').value;
+  if(cur!==getPass()){ toast('Current password is wrong.','err'); return; }
+  if(!nw||nw.length<4){ toast('New password must be at least 4 characters.','err'); return; }
+  if(nw!==cf){ toast('New passwords do not match.','err'); return; }
+  localStorage.setItem(PW_KEY,nw);
+  document.getElementById('pw-current').value=''; document.getElementById('pw-new').value=''; document.getElementById('pw-confirm').value='';
+  toast('Password updated successfully!');
+}
+function resetData() {
+  if(!confirm('Reset ALL portfolio content to defaults? This cannot be undone.')) return;
+  localStorage.removeItem(STORAGE_KEY); toast('Content reset to defaults!'); loadOverview();
+}
+
+
+// ─── GITHUB PUBLISH ────────────────────────────────────────────
+const GH_TOKEN_KEY = 'bishalGhToken';
+const GH_USER_KEY  = 'bishalGhUser';
+const GH_REPO_KEY  = 'bishalGhRepo';
+
+function loadGhSettings() {
+  const t = localStorage.getItem(GH_TOKEN_KEY);
+  const u = localStorage.getItem(GH_USER_KEY);
+  const r = localStorage.getItem(GH_REPO_KEY);
+  if(t) document.getElementById('gh-token').value = t;
+  if(u) document.getElementById('gh-user').value = u;
+  if(r) document.getElementById('gh-repo').value = r;
+}
+
+function saveGhSettings() {
+  localStorage.setItem(GH_TOKEN_KEY, document.getElementById('gh-token').value.trim());
+  localStorage.setItem(GH_USER_KEY,  document.getElementById('gh-user').value.trim());
+  localStorage.setItem(GH_REPO_KEY,  document.getElementById('gh-repo').value.trim());
+  toast('GitHub settings saved!');
+}
+
+function toggleTokenVis() {
+  const inp = document.getElementById('gh-token');
+  const btn = document.getElementById('tokenEyeBtn');
+  if(inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+function setPublishStatus(msg, color) {
+  const el = document.getElementById('publishStatus');
+  el.style.display = 'block';
+  el.style.color = color || 'var(--text2)';
+  el.innerHTML = msg;
+}
+
+async function getFileSha(token, user, repo, filename) {
+  const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${filename}`, {
+    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+  });
+  if(res.status === 404) return null;
+  const data = await res.json();
+  return data.sha || null;
+}
+
+async function pushFileToGitHub(token, user, repo, filename, content, commitMsg) {
+  const sha = await getFileSha(token, user, repo, filename);
+  const body = {
+    message: commitMsg,
+    content: btoa(unescape(encodeURIComponent(content))),
+  };
+  if(sha) body.sha = sha;
+  const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${filename}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  return res;
+}
+
+async function publishToGitHub() {
+  const token = document.getElementById('gh-token').value.trim() || localStorage.getItem(GH_TOKEN_KEY);
+  const user  = document.getElementById('gh-user').value.trim()  || localStorage.getItem(GH_USER_KEY);
+  const repo  = document.getElementById('gh-repo').value.trim()  || localStorage.getItem(GH_REPO_KEY);
+
+  if(!token) { setPublishStatus('❌ GitHub token enter karo pehle!', 'var(--red)'); return; }
+  if(!user || !repo) { setPublishStatus('❌ Username aur repo name enter karo!', 'var(--red)'); return; }
+
+  const btn = document.getElementById('publishBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Publishing...';
+  setPublishStatus('⏳ Portfolio GitHub pe publish ho raha hai...', 'var(--amber)');
+
+  try {
+    // Get current portfolio data
+    const portfolioData = localStorage.getItem(STORAGE_KEY);
+
+    // Fetch current index.html from GitHub
+    const indexRes = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/index.html`, {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+
+    if(!indexRes.ok) {
+      setPublishStatus('❌ index.html GitHub pe nahi mili. Pehle file upload karo.', 'var(--red)');
+      btn.disabled = false; btn.textContent = '🚀 Publish to GitHub'; return;
+    }
+
+    const indexData = await indexRes.json();
+    let htmlContent = decodeURIComponent(escape(atob(indexData.content.replace(/\n/g, ''))));
+
+    // Inject data as a script tag at the end of <head> or before </head>
+    const dataScript = `<script id="__ADMIN_DATA__">localStorage.setItem('bishalPortfolioData', ${JSON.stringify(JSON.stringify(JSON.parse(portfolioData || '{}')))})<\/script>`;
+
+    // Remove old injected script if exists
+    htmlContent = htmlContent.replace(/<script id="__ADMIN_DATA__"[\s\S]*?<\/script>/g, '');
+
+    // Inject before </head>
+    htmlContent = htmlContent.replace('</head>', dataScript + '\n</head>');
+
+    setPublishStatus('⏳ File update ho rahi hai...', 'var(--amber)');
+
+    const pushRes = await pushFileToGitHub(token, user, repo, 'index.html', htmlContent, 'Admin: portfolio content updated');
+
+    if(pushRes.ok) {
+      setPublishStatus('✅ Successfully published! 2-3 minute mein sabko naya portfolio dikhega.<br><a href="https://' + user.toLowerCase() + '.github.io/' + repo + '/" target="_blank" style="color:var(--teal)">Portfolio dekho →</a>', 'var(--teal)');
+      toast('Portfolio published successfully! 🚀');
+      // Save settings for next time
+      localStorage.setItem(GH_TOKEN_KEY, token);
+      localStorage.setItem(GH_USER_KEY, user);
+      localStorage.setItem(GH_REPO_KEY, repo);
+    } else {
+      const err = await pushRes.json();
+      setPublishStatus('❌ Error: ' + (err.message || 'Unknown error. Token sahi hai?'), 'var(--red)');
+    }
+  } catch(e) {
+    setPublishStatus('❌ Network error: ' + e.message, 'var(--red)');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🚀 Publish to GitHub';
+}
+
+// ─── BOOT ──────────────────────────────────────────────────────
+checkAuth();
+</script>
+</body>
+</html>
